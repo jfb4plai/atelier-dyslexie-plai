@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atelier Dyslexie — PLAI</title>
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --primary:        #7c3aed;
+            --primary-hover:  #6d28d9;
+            --primary-light:  #ede9fe;
+            --primary-border: #c4b5fd;
+            --bg-page:        linear-gradient(135deg, #faf9ff 0%, #eef2ff 100%);
+            --bg-card:        #ffffff;
+            --border-card:    #e9d5ff;
+            --text-main:      #1e1b4b;
+            --text-muted:     #6b7280;
+            --text-label:     #374151;
+            --shadow-sm:      0 1px 3px rgba(0,0,0,0.08);
+            --radius-card:    16px;
+            --radius-btn:     8px;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+            background: var(--bg-page);
+            color: var(--text-main);
+            min-height: 100vh;
+        }
+
+        /* ── Header ─────────────────────────────────────────── */
+        header {
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            box-shadow: var(--shadow-sm);
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-logo {
+            height: 44px;
+            width: auto;
+            display: block;
+            flex-shrink: 0;
+        }
+        .header-title { flex: 1; }
+        .header-title h1 { font-size: 18px; font-weight: 700; color: var(--text-main); }
+        .header-title p  { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+        .back-link {
+            font-size: 13px;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            padding: 6px 12px;
+            border: 1.5px solid var(--primary-border);
+            border-radius: 7px;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+        .back-link:hover { background: var(--primary-light); }
+
+        /* ── Layout ─────────────────────────────────────────── */
+        main {
+            display: flex;
+            gap: 16px;
+            padding: 16px;
+            height: calc(100vh - 61px);
+        }
+
+        /* ── Controls panel ─────────────────────────────────── */
+        .controls-panel {
+            width: 320px;
+            flex-shrink: 0;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 20px;
+            scrollbar-width: thin;
+            scrollbar-color: #d1d5db transparent;
+        }
+        .controls-panel::-webkit-scrollbar { width: 4px; }
+        .controls-panel::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+
+        /* ── Cards ──────────────────────────────────────────── */
+        .card {
+            background: var(--bg-card);
+            border: 2px solid var(--border-card);
+            border-radius: var(--radius-card);
+            padding: 14px;
+            box-shadow: var(--shadow-sm);
+        }
+        .card-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* ── Form elements ──────────────────────────────────── */
+        label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-label);
+            margin-bottom: 4px;
+        }
+        select {
+            width: 100%;
+            padding: 7px 10px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 7px;
+            font-size: 13px;
+            color: var(--text-main);
+            background: white;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        select:focus { outline: none; border-color: var(--primary); }
+        input[type="range"] { width: 100%; accent-color: var(--primary); cursor: pointer; }
+        .range-row { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+        .range-value { font-size: 11px; color: var(--text-muted); min-width: 34px; text-align: right; font-variant-numeric: tabular-nums; }
+
+        /* ── Toggle switch ──────────────────────────────────── */
+        .toggle-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 8px 0;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .toggle-row:last-of-type { border-bottom: none; padding-bottom: 0; }
+        .toggle {
+            position: relative;
+            width: 36px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        .toggle input { opacity: 0; width: 0; height: 0; }
+        .toggle-slider {
+            position: absolute;
+            inset: 0;
+            background: #d1d5db;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 14px; height: 14px;
+            left: 3px; top: 3px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+        }
+        .toggle input:checked + .toggle-slider { background: var(--primary); }
+        .toggle input:checked + .toggle-slider::before { transform: translateX(16px); }
+        .toggle-label strong { display: block; font-size: 13px; font-weight: 600; color: var(--text-label); }
+        .toggle-label small  { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+
+        /* ── Scientific note ────────────────────────────────── */
+        .sci-note {
+            font-size: 11px;
+            color: #5b21b6;
+            background: #faf5ff;
+            border-left: 3px solid #c4b5fd;
+            padding: 7px 9px;
+            border-radius: 0 6px 6px 0;
+            margin-top: 10px;
+            line-height: 1.55;
+        }
+        .sci-note strong { font-weight: 700; }
+
+        /* ── Color swatches ─────────────────────────────────── */
+        .swatches { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+        .swatch {
+            width: 24px; height: 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.15s, border-color 0.15s;
+            flex-shrink: 0;
+        }
+        .swatch:hover { transform: scale(1.2); }
+        .swatch.active { border-color: var(--primary); transform: scale(1.15); }
+
+        /* ── Color pair inputs ──────────────────────────────── */
+        .color-pair { display: flex; gap: 10px; margin-top: 8px; }
+        .color-item { display: flex; align-items: center; gap: 6px; flex: 1; }
+        .color-item label { margin-bottom: 0; font-size: 12px; white-space: nowrap; }
+        input[type="color"] {
+            width: 36px; height: 28px;
+            padding: 2px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* ── Buttons ────────────────────────────────────────── */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 7px 13px;
+            border-radius: var(--radius-btn);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 1.5px solid var(--primary-border);
+        }
+        .btn-outline:hover { background: var(--primary-light); }
+        .btn-ghost {
+            background: #f9fafb;
+            color: var(--text-label);
+            border: 1.5px solid #e5e7eb;
+        }
+        .btn-ghost:hover { background: #f3f4f6; }
+        .btn-stop { background: #fee2e2; color: #dc2626; }
+        .btn-stop:hover { background: #fecaca; }
+        .btn-row { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 8px; }
+
+        /* ── TTS word highlight ─────────────────────────────── */
+        .tts-highlight {
+            background: rgba(255, 213, 0, 0.55);
+            border-radius: 3px;
+            outline: 1px solid rgba(200, 160, 0, 0.4);
+            transition: background 0.08s;
+        }
+
+        /* ── Textarea ───────────────────────────────────────── */
+        .text-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 9px 11px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 9px;
+            font-size: 13px;
+            resize: vertical;
+            font-family: system-ui, sans-serif;
+            color: var(--text-main);
+            transition: border-color 0.2s;
+            line-height: 1.6;
+        }
+        .text-input:focus { outline: none; border-color: var(--primary); }
+
+        /* ── Position buttons ───────────────────────────────── */
+        .pos-btns { display: flex; gap: 5px; margin-top: 8px; }
+        .pos-btn {
+            flex: 1;
+            padding: 5px 2px;
+            font-size: 11px;
+            font-weight: 600;
+            border: 1.5px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            color: var(--text-label);
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .pos-btn.active {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* ── Display area ───────────────────────────────────── */
+        .display-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 0;
+        }
+        .display-toolbar {
+            background: white;
+            border: 2px solid var(--border-card);
+            border-radius: 12px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+        .toolbar-left  { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .toolbar-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        /* Alignment buttons */
+        .align-btns { display: flex; gap: 3px; }
+        .align-btn {
+            width: 28px; height: 26px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            color: var(--text-label);
+        }
+        .align-btn:hover { background: var(--primary-light); border-color: var(--primary-border); }
+        .align-btn.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+
+        /* Show-original toggle label */
+        .toggle-inline {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-label);
+            cursor: pointer;
+        }
+
+        /* ── Text panels ────────────────────────────────────── */
+        .text-panels {
+            flex: 1;
+            display: flex;
+            gap: 14px;
+            min-height: 0;
+        }
+        .panel {
+            flex: 1;
+            background: white;
+            border: 2px solid var(--border-card);
+            border-radius: var(--radius-card);
+            padding: 22px 24px;
+            overflow-y: auto;
+            transition: background 0.3s, color 0.3s;
+        }
+        .panel-label {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(0,0,0,0.07);
+        }
+        #originalPanel { display: none; }
+
+        /* ── Dyslexia effects ───────────────────────────────── */
+        .jump-shift {
+            display: inline-block;
+            transition: transform 0.35s ease;
+        }
+        .jump-up   { transform: translateY(-0.4em); }
+        .jump-down { transform: translateY( 0.4em); }
+
+        .image-inline {
+            max-width: 90px;
+            max-height: 70px;
+            opacity: 0.7;
+            vertical-align: middle;
+            margin: 0 8px;
+            border-radius: 5px;
+        }
+
+        /* ── Empty state ────────────────────────────────────── */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            min-height: 180px;
+            color: #d1d5db;
+            font-size: 14px;
+            text-align: center;
+            gap: 10px;
+        }
+        .empty-icon { font-size: 44px; }
+
+        /* ── Image preview ──────────────────────────────────── */
+        .img-preview-wrap {
+            display: none;
+            margin-top: 8px;
+            gap: 8px;
+            align-items: center;
+        }
+        .img-preview-wrap img {
+            max-width: 64px;
+            max-height: 48px;
+            border-radius: 6px;
+            border: 1.5px solid #e5e7eb;
+        }
+        .img-preview-wrap small { font-size: 11px; color: var(--text-muted); }
+
+        /* ── Responsive ─────────────────────────────────────── */
+        @media (max-width: 860px) {
+            main { flex-direction: column; height: auto; }
+            .controls-panel { width: 100%; overflow-y: visible; }
+            .text-panels { min-height: 400px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HEADER ══ -->
+<header>
+    <img src="PLAI.jpg" alt="Logo PLAI" class="header-logo">
+    <div class="header-title">
+        <h1>Atelier Dyslexie</h1>
+        <p>Simulateur de perception · Outil de sensibilisation pour enseignants</p>
+    </div>
+    <a href="https://portail-plai.vercel.app" class="back-link">← Portail</a>
+</header>
+
+<!-- ═══════════════════════════════════════ MAIN ═══ -->
+<main>
+
+    <!-- ──────────────────── PANNEAU CONTRÔLES ─────── -->
+    <aside class="controls-panel">
+
+        <!-- TEXTE -->
+        <div class="card">
+            <div class="card-title">📝 Texte</div>
+            <textarea class="text-input" id="textInput" placeholder="Collez votre texte ici…"></textarea>
+            <div class="btn-row">
+                <label class="btn btn-outline" style="cursor:pointer">
+                    📂 Importer .txt / .docx
+                    <input type="file" id="fileInput" accept=".txt,.docx" style="display:none">
+                </label>
+                <button class="btn btn-ghost" id="exampleBtn">Texte exemple</button>
+            </div>
+        </div>
+
+        <!-- POLICE & AFFICHAGE -->
+        <div class="card">
+            <div class="card-title">🎨 Police &amp; Affichage</div>
+
+            <label>Police</label>
+            <select id="fontSelect">
+                <option value="'French Script MT', cursive">French Script MT — illisible</option>
+                <option value="Arial, sans-serif" selected>Arial — recommandée</option>
+                <option value="'Comic Sans MS', cursive">Comic Sans — souvent citée</option>
+                <option value="'Times New Roman', serif">Times New Roman — avec empattement</option>
+                <option value="'Courier New', monospace">Courier New — monospace</option>
+            </select>
+
+            <label style="margin-top:10px">Taille</label>
+            <div class="range-row">
+                <input type="range" id="fontSize" min="10" max="36" value="16">
+                <span class="range-value" id="fontSizeVal">16px</span>
+            </div>
+
+            <label style="margin-top:10px">Interligne</label>
+            <div class="range-row">
+                <input type="range" id="lineHeight" min="10" max="45" value="18" step="1">
+                <span class="range-value" id="lineHeightVal">1.8</span>
+            </div>
+
+            <label style="margin-top:10px">Espacement lettres</label>
+            <div class="range-row">
+                <input type="range" id="letterSpacing" min="0" max="10" value="0" step="0.5">
+                <span class="range-value" id="letterSpacingVal">0px</span>
+            </div>
+
+            <label style="margin-top:10px">Espacement mots</label>
+            <div class="range-row">
+                <input type="range" id="wordSpacing" min="0" max="24" value="0">
+                <span class="range-value" id="wordSpacingVal">0px</span>
+            </div>
+
+            <label style="margin-top:10px">Fond</label>
+            <div class="swatches" id="bgSwatches">
+                <div class="swatch active" data-color="#ffffff" style="background:#ffffff;border-color:#e5e7eb" title="Blanc"></div>
+                <div class="swatch" data-color="#fdf6e3" style="background:#fdf6e3" title="Crème"></div>
+                <div class="swatch" data-color="#F2E8D9" style="background:#F2E8D9" title="Beige"></div>
+                <div class="swatch" data-color="#e8f4f8" style="background:#e8f4f8" title="Bleu ciel"></div>
+                <div class="swatch" data-color="#e8f5e9" style="background:#e8f5e9" title="Vert doux"></div>
+                <div class="swatch" data-color="#fff9e6" style="background:#fff9e6" title="Jaune doux"></div>
+                <div class="swatch" data-color="#fce4ec" style="background:#fce4ec" title="Rose poudré"></div>
+                <div class="swatch" data-color="#f3f3f3" style="background:#f3f3f3" title="Gris clair"></div>
+                <div class="swatch" data-color="#1e1e2e" style="background:#1e1e2e" title="Sombre"></div>
+                <div class="swatch" data-color="#3d2b1f" style="background:#3d2b1f" title="Sépia foncé"></div>
+                <div class="swatch" data-color="#2e5e35" style="background:#2e5e35" title="Vert tableau"></div>
+            </div>
+
+            <label style="margin-top:10px">Couleur du texte</label>
+            <div class="swatches" id="textSwatches">
+                <div class="swatch active" data-color="#1e1b4b" style="background:#1e1b4b" title="Marine"></div>
+                <div class="swatch" data-color="#111827" style="background:#111827" title="Noir"></div>
+                <div class="swatch" data-color="#374151" style="background:#374151" title="Gris foncé"></div>
+                <div class="swatch" data-color="#4a3728" style="background:#4a3728" title="Marron"></div>
+                <div class="swatch" data-color="#1e3a5f" style="background:#1e3a5f" title="Bleu foncé"></div>
+                <div class="swatch" data-color="#f9fafb" style="background:#f9fafb;border-color:#e5e7eb" title="Blanc cassé"></div>
+                <div class="swatch" data-color="#ffffff" style="background:#ffffff;border-color:#e5e7eb" title="Blanc"></div>
+                <div class="swatch" data-color="#8ecf8e" style="background:#8ecf8e" title="Vert pâle"></div>
+                <div class="swatch" data-color="#d97b74" style="background:#d97b74" title="Rouge craie"></div>
+                <div class="swatch" data-color="#d4c44a" style="background:#d4c44a" title="Jaune craie"></div>
+            </div>
+
+            <div class="sci-note">
+                <strong>Zorzi et al. (2012, PNAS)</strong> — augmenter l'espacement entre lettres et mots améliore significativement la lecture des enfants dyslexiques. <strong>Rello &amp; Baeza-Yates (2013)</strong> — les polices sans empattement (Arial) réduisent les erreurs. Le texte justifié crée des « rivières blanches » qui perturbent le balayage visuel.
+            </div>
+        </div>
+
+        <!-- COLORISATION -->
+        <div class="card">
+            <div class="card-title">🌈 Colorisation</div>
+            <div class="toggle-row">
+                <label class="toggle">
+                    <input type="checkbox" id="bicolorToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Un mot sur deux coloré</strong>
+                    <small>Segmentation lexicale visuelle</small>
+                </div>
+            </div>
+            <div class="color-pair">
+                <div class="color-item">
+                    <label>Couleur 1</label>
+                    <input type="color" id="color1" value="#1e1b4b">
+                </div>
+                <div class="color-item">
+                    <label>Couleur 2</label>
+                    <input type="color" id="color2" value="#b45309">
+                </div>
+            </div>
+            <div class="sci-note">
+                <strong>Wilkins (2003)</strong> — la colorisation alternée réduit la fatigue visuelle et améliore la fluence même sans corriger le décodage phonologique. Efficace même si l'intermot n'est pas parfaitement positionné par l'élève.
+            </div>
+        </div>
+
+        <!-- EFFETS DYSLEXIE -->
+        <div class="card">
+            <div class="card-title">🔬 Effets dyslexie</div>
+
+            <div class="toggle-row">
+                <label class="toggle">
+                    <input type="checkbox" id="verticalShift">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Décalage vertical des lettres</strong>
+                    <small>Instabilité sur la ligne de base (animé)</small>
+                </div>
+            </div>
+
+            <div class="toggle-row">
+                <label class="toggle">
+                    <input type="checkbox" id="shuffleLetters">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Mélange de lettres</strong>
+                    <small>Décodage séquentiel perturbé (animé)</small>
+                </div>
+            </div>
+
+            <div class="toggle-row">
+                <label class="toggle">
+                    <input type="checkbox" id="symmetry">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Inversions b↔d · p↔q · n↔u</strong>
+                    <small>Confusion des lettres à symétrie axiale (animé)</small>
+                </div>
+            </div>
+
+            <div class="sci-note">
+                <strong>Vellutino (1979), Stanovich (1988)</strong> — ces confusions sont phonologiques, non visuelles : difficulté à associer un graphème à son phonème. La simulation reste pédagogiquement valide pour la sensibilisation des enseignants et des pairs.
+            </div>
+        </div>
+
+        <!-- IMAGE DISTRACTEUR -->
+        <div class="card">
+            <div class="card-title">🖼️ Image distracteur</div>
+
+            <div class="toggle-row">
+                <label class="toggle">
+                    <input type="checkbox" id="imageToggle">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Activer l'image distracteur</strong>
+                    <small>Insère une image dans le texte</small>
+                </div>
+            </div>
+
+            <label class="btn btn-outline" style="cursor:pointer; display:inline-flex; margin-top:8px">
+                📷 Choisir une image
+                <input type="file" id="imageInput" accept="image/*" style="display:none">
+            </label>
+
+            <div class="img-preview-wrap" id="imgPreviewWrap">
+                <img id="previewImg" src="" alt="aperçu">
+                <small>Image chargée</small>
+            </div>
+
+            <label style="margin-top:10px">Position</label>
+            <div class="pos-btns">
+                <button class="pos-btn active" data-pos="debut">Début</button>
+                <button class="pos-btn" data-pos="milieu">Milieu</button>
+                <button class="pos-btn" data-pos="fin">Fin</button>
+                <button class="pos-btn" data-pos="aleatoire">Aléatoire</button>
+            </div>
+
+            <div class="sci-note">
+                <strong>Sweller (1988) — Théorie de la charge cognitive</strong> — un élément visuel non pertinent augmente la charge extrinsèque. Pour un élève dyslexique dont les ressources cognitives sont déjà mobilisées par le décodage, un distracteur peut provoquer une rupture totale de la compréhension.
+            </div>
+        </div>
+
+        <!-- AUDIO -->
+        <div class="card">
+            <div class="card-title">🔊 Audio</div>
+
+            <label>Voix</label>
+            <select id="voiceSelect">
+                <option value="">— Voix par défaut —</option>
+            </select>
+
+            <div class="btn-row">
+                <button class="btn btn-primary" id="speakBtn">▶ Lire</button>
+                <button class="btn btn-stop"    id="stopBtn" >■ Arrêter</button>
+            </div>
+
+            <div class="sci-note">
+                <strong>Shaywitz (2003)</strong> — la voie phonologique étant déficitaire, la voie auditive est une compensation légitime. L'accès à l'audio n'est pas une facilité : c'est un aménagement universel qui contourne le déficit sans le supprimer ni compromettre la compréhension.
+            </div>
+        </div>
+
+    </aside><!-- /controls-panel -->
+
+
+    <!-- ──────────────────── ZONE D'AFFICHAGE ──────── -->
+    <div class="display-area">
+
+        <!-- Toolbar -->
+        <div class="display-toolbar">
+            <div class="toolbar-left">
+                <span style="font-size:12px;font-weight:600;color:var(--text-muted)">Alignement</span>
+                <div class="align-btns">
+                    <button class="align-btn active" data-align="left"    title="Gauche">⬅</button>
+                    <button class="align-btn"         data-align="center"  title="Centré">↔</button>
+                    <button class="align-btn"         data-align="right"   title="Droite">➡</button>
+                    <button class="align-btn"         data-align="justify" title="Justifié — observe les espaces irréguliers !">☰</button>
+                </div>
+            </div>
+            <div class="toolbar-right">
+                <label class="toggle-inline">
+                    <label class="toggle" style="margin-bottom:0">
+                        <input type="checkbox" id="showOriginal">
+                        <span class="toggle-slider"></span>
+                    </label>
+                    Afficher l'original côte à côte
+                </label>
+            </div>
+        </div>
+
+        <!-- Panels -->
+        <div class="text-panels">
+            <div class="panel" id="originalPanel">
+                <div class="panel-label">Texte original</div>
+                <div id="originalContent"></div>
+            </div>
+            <div class="panel" id="displayPanel">
+                <div class="panel-label" id="displayLabel">Texte avec effets</div>
+                <div id="displayContent">
+                    <div class="empty-state">
+                        <span class="empty-icon">📄</span>
+                        <span>Collez ou importez un texte pour commencer</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /display-area -->
+
+</main>
+
+
+<!-- ═══════════════════════════════════════ SCRIPT ══ -->
+<script>
+// ── État global ───────────────────────────────────────────────────────────
+let originalContent = '';
+let imageDataUrl    = null;
+let imagePosition   = 'debut';
+let textAlign       = 'left';
+let bgColor         = '#ffffff';
+let textColor       = '#1e1b4b';
+let animInterval    = null;
+
+const EXEMPLE = `Le renard et la cigogne se retrouvèrent un matin de novembre au bord de la forêt. Le renard roux, rusé comme à son habitude, proposa à son amie de partager un repas. Il servit une soupe légère dans une assiette bien plate. La cigogne, avec son long bec effilé, ne put avaler la moindre goutte. Elle sourit pourtant, car elle avait déjà une idée en tête pour rendre la pareille à son compère.`;
+
+// ── DOM refs ──────────────────────────────────────────────────────────────
+const textInput      = document.getElementById('textInput');
+const displayPanel   = document.getElementById('displayPanel');
+const displayContent = document.getElementById('displayContent');
+const originalPanel  = document.getElementById('originalPanel');
+const originalDiv    = document.getElementById('originalContent');
+
+// ── Texte input ───────────────────────────────────────────────────────────
+textInput.addEventListener('input', e => {
+    originalContent = e.target.value;
+    updateDisplay();
+});
+
+document.getElementById('exampleBtn').addEventListener('click', () => {
+    textInput.value  = EXEMPLE;
+    originalContent  = EXEMPLE;
+    updateDisplay();
+});
+
+document.getElementById('fileInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (file.name.endsWith('.docx')) {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            mammoth.extractRawText({ arrayBuffer: ev.target.result })
+                .then(result => {
+                    originalContent = result.value.trim();
+                    textInput.value = originalContent;
+                    updateDisplay();
+                })
+                .catch(() => alert('Impossible de lire ce fichier .docx.'));
+        };
+        reader.readAsArrayBuffer(file);
+    } else {
+        const reader = new FileReader();
+        reader.onload = ev => {
+            originalContent = ev.target.result;
+            textInput.value = originalContent;
+            updateDisplay();
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+});
+
+// ── Image distracteur ─────────────────────────────────────────────────────
+document.getElementById('imageInput').addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+        imageDataUrl = ev.target.result;
+        document.getElementById('previewImg').src = imageDataUrl;
+        document.getElementById('imgPreviewWrap').style.display = 'flex';
+        updateDisplay();
+    };
+    reader.readAsDataURL(file);
+});
+
+document.querySelectorAll('.pos-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.pos-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        imagePosition = btn.dataset.pos;
+        updateDisplay();
+    });
+});
+
+// ── Sliders ───────────────────────────────────────────────────────────────
+[
+    { id: 'fontSize',      valId: 'fontSizeVal',      fmt: v => Math.round(v) + 'px' },
+    { id: 'lineHeight',    valId: 'lineHeightVal',    fmt: v => (v * 0.1).toFixed(1) },
+    { id: 'letterSpacing', valId: 'letterSpacingVal', fmt: v => parseFloat(v).toFixed(1) + 'px' },
+    { id: 'wordSpacing',   valId: 'wordSpacingVal',   fmt: v => Math.round(v) + 'px' },
+].forEach(({ id, valId, fmt }) => {
+    document.getElementById(id).addEventListener('input', e => {
+        document.getElementById(valId).textContent = fmt(e.target.value);
+        updateDisplay();
+    });
+});
+
+// ── Alignement ────────────────────────────────────────────────────────────
+document.querySelectorAll('.align-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        textAlign = btn.dataset.align;
+        updateDisplay();
+    });
+});
+
+// ── Swatches fond ─────────────────────────────────────────────────────────
+document.querySelectorAll('#bgSwatches .swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+        document.querySelectorAll('#bgSwatches .swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        bgColor = sw.dataset.color;
+        updateDisplay();
+    });
+});
+
+// ── Swatches texte ────────────────────────────────────────────────────────
+document.querySelectorAll('#textSwatches .swatch').forEach(sw => {
+    sw.addEventListener('click', () => {
+        document.querySelectorAll('#textSwatches .swatch').forEach(s => s.classList.remove('active'));
+        sw.classList.add('active');
+        textColor = sw.dataset.color;
+        updateDisplay();
+    });
+});
+
+// ── Afficher original ─────────────────────────────────────────────────────
+document.getElementById('showOriginal').addEventListener('change', e => {
+    originalPanel.style.display = e.target.checked ? 'block' : 'none';
+});
+
+// ── Toggles → recalcul + intervalle ──────────────────────────────────────
+['fontSelect','bicolorToggle','verticalShift','shuffleLetters',
+ 'symmetry','imageToggle','color1','color2'].forEach(id => {
+    document.getElementById(id).addEventListener('change', () => {
+        updateDisplay();
+        scheduleAnim();
+    });
+});
+
+function scheduleAnim() {
+    clearInterval(animInterval);
+    animInterval = null;
+    const needsAnim = document.getElementById('verticalShift').checked
+                   || document.getElementById('shuffleLetters').checked
+                   || document.getElementById('symmetry').checked;
+    if (needsAnim) {
+        animInterval = setInterval(updateDisplay, 2200);
+    }
+}
+
+// ── TTS ───────────────────────────────────────────────────────────────────
+function loadVoices() {
+    const voices = window.speechSynthesis.getVoices();
+    const sel    = document.getElementById('voiceSelect');
+    sel.innerHTML = '<option value="">— Voix par défaut —</option>';
+
+    // Voix françaises en premier (fr-FR, fr-BE, fr-CH, fr-CA...)
+    const frVoices    = voices.filter(v => v.lang.startsWith('fr'));
+    const otherVoices = voices.filter(v => !v.lang.startsWith('fr'));
+
+    if (frVoices.length) {
+        const grFr = document.createElement('optgroup');
+        grFr.label = 'Français';
+        frVoices.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value       = v.name;
+            opt.textContent = `${v.name} (${v.lang})`;
+            grFr.appendChild(opt);
+        });
+        sel.appendChild(grFr);
+    }
+
+    if (otherVoices.length) {
+        const grOther = document.createElement('optgroup');
+        grOther.label = 'Autres langues';
+        otherVoices.forEach(v => {
+            const opt = document.createElement('option');
+            opt.value       = v.name;
+            opt.textContent = `${v.name} (${v.lang})`;
+            grOther.appendChild(opt);
+        });
+        sel.appendChild(grOther);
+    }
+}
+window.speechSynthesis.onvoiceschanged = loadVoices;
+loadVoices();
+
+document.getElementById('speakBtn').addEventListener('click', () => {
+    if (!originalContent.trim()) return;
+    window.speechSynthesis.cancel();
+
+    // Précalcul des positions de chaque mot dans le texte original
+    const wordPositions = [];
+    const re = /\S+/g;
+    let m;
+    while ((m = re.exec(originalContent)) !== null) {
+        wordPositions.push({ start: m.index, end: m.index + m[0].length });
+    }
+
+    function clearHighlights() {
+        document.querySelectorAll('#displayContent [data-wi]').forEach(el => {
+            el.classList.remove('tts-highlight');
+        });
+    }
+
+    const utt  = new SpeechSynthesisUtterance(originalContent);
+    utt.lang   = 'fr-FR';
+    const name = document.getElementById('voiceSelect').value;
+    if (name) {
+        const v = window.speechSynthesis.getVoices().find(x => x.name === name);
+        if (v) utt.voice = v;
+    }
+
+    // Surlignage mot par mot via l'événement boundary
+    utt.addEventListener('boundary', e => {
+        if (e.name !== 'word') return;
+        clearHighlights();
+        // Trouver l'index du mot correspondant à la position charIndex
+        let wi = -1;
+        for (let i = 0; i < wordPositions.length; i++) {
+            if (e.charIndex >= wordPositions[i].start && e.charIndex < wordPositions[i].end) {
+                wi = i; break;
+            }
+        }
+        if (wi >= 0) {
+            const el = document.querySelector(`#displayContent [data-wi="${wi}"]`);
+            if (el) {
+                el.classList.add('tts-highlight');
+                el.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+        }
+    });
+
+    utt.addEventListener('end',   clearHighlights);
+    utt.addEventListener('error', clearHighlights);
+
+    window.speechSynthesis.speak(utt);
+});
+
+document.getElementById('stopBtn').addEventListener('click', () => {
+    window.speechSynthesis.cancel();
+    document.querySelectorAll('#displayContent [data-wi]').forEach(el => {
+        el.classList.remove('tts-highlight');
+    });
+});
+
+// ── Effets texte ──────────────────────────────────────────────────────────
+function escapeHTML(str) {
+    return str
+        .replace(/&/g,'&amp;')
+        .replace(/</g,'&lt;')
+        .replace(/>/g,'&gt;');
+}
+
+function swapSymmetry(text) {
+    const map = { b:'d', d:'b', p:'q', q:'p', n:'u', u:'n' };
+    return text.split('').map(c => map[c] ?? c).join('');
+}
+
+function shuffleBlocks(text) {
+    const SIZE = 9;
+    let out = '';
+    for (let i = 0; i < text.length; i += SIZE) {
+        const block = text.slice(i, i + SIZE).split('');
+        for (let j = block.length - 1; j > 0; j--) {
+            const k = Math.floor(Math.random() * (j + 1));
+            [block[j], block[k]] = [block[k], block[j]];
+        }
+        out += block.join('');
+    }
+    return out;
+}
+
+/**
+ * Construit le HTML du texte avec bicolor + jumpShift en une seule passe
+ * sur les tokens (mots et espaces), pour éviter les conflits entre effets.
+ */
+function buildHTML(plainText) {
+    const bicolor   = document.getElementById('bicolorToggle').checked;
+    const jumpShift = document.getElementById('verticalShift').checked;
+    const c1        = document.getElementById('color1').value;
+    const c2        = document.getElementById('color2').value;
+
+    // Tokeniser : alterner mots et séparateurs
+    const tokens = plainText.split(/(\s+)/);
+    let wordIdx  = 0;
+
+    return tokens.map(token => {
+        // Séparateur (espaces, retours à la ligne)
+        if (/^\s+$/.test(token)) {
+            return token.replace(/\n/g, '<br>');
+        }
+
+        // Mot : construire les caractères
+        const escaped = escapeHTML(token);
+        let chars;
+        if (jumpShift) {
+            chars = escaped.split('').map(c => {
+                const cls = Math.random() > 0.5 ? 'jump-up' : 'jump-down';
+                return `<span class="jump-shift ${cls}">${c}</span>`;
+            }).join('');
+        } else {
+            chars = escaped;
+        }
+
+        // Envelopper dans la couleur bicolor si actif
+        const color = bicolor ? (wordIdx % 2 === 0 ? c1 : c2) : null;
+        const wi = wordIdx;
+        wordIdx++;
+
+        const style = color ? ` style="color:${color}"` : '';
+        return `<span data-wi="${wi}"${style}>${chars}</span>`;
+    }).join('');
+}
+
+function insertImage(html) {
+    if (!imageDataUrl) return html;
+    const tag = `<img src="${imageDataUrl}" class="image-inline" alt="distracteur">`;
+    let pos = imagePosition;
+    if (pos === 'aleatoire') {
+        const choices = ['debut','milieu','fin'];
+        pos = choices[Math.floor(Math.random() * 3)];
+    }
+    if (pos === 'debut') return tag + html;
+    if (pos === 'fin')   return html + tag;
+    // milieu : trouver l'espace le plus proche du centre
+    const mid    = Math.floor(html.length / 2);
+    const spaceI = html.indexOf(' ', mid);
+    const at     = spaceI > -1 ? spaceI + 1 : mid;
+    return html.slice(0, at) + tag + html.slice(at);
+}
+
+// ── Rendu principal ───────────────────────────────────────────────────────
+function updateDisplay() {
+    // Panneau original
+    originalDiv.textContent = originalContent;
+
+    if (!originalContent.trim()) {
+        displayContent.innerHTML = `
+            <div class="empty-state">
+                <span class="empty-icon">📄</span>
+                <span>Collez ou importez un texte pour commencer</span>
+            </div>`;
+        return;
+    }
+
+    // Paramètres d'affichage
+    const fontSize      = document.getElementById('fontSize').value;
+    const lineHeight    = (parseFloat(document.getElementById('lineHeight').value) * 0.1).toFixed(1);
+    const letterSpacing = document.getElementById('letterSpacing').value;
+    const wordSpacing   = document.getElementById('wordSpacing').value;
+    const font          = document.getElementById('fontSelect').value;
+
+    // Appliquer les effets texte (niveau plain text)
+    let processed = originalContent;
+    if (document.getElementById('symmetry').checked)     processed = swapSymmetry(processed);
+    if (document.getElementById('shuffleLetters').checked) processed = shuffleBlocks(processed);
+
+    // Construire le HTML (bicolor + jumpShift)
+    let html = buildHTML(processed);
+
+    // Image distracteur
+    if (document.getElementById('imageToggle').checked) {
+        html = insertImage(html);
+    }
+
+    // Styles sur le panel
+    displayPanel.style.fontFamily     = font;
+    displayPanel.style.fontSize       = fontSize + 'px';
+    displayPanel.style.lineHeight     = lineHeight;
+    displayPanel.style.letterSpacing  = letterSpacing + 'px';
+    displayPanel.style.wordSpacing    = wordSpacing + 'px';
+    displayPanel.style.textAlign      = textAlign;
+    displayPanel.style.backgroundColor = bgColor;
+    displayPanel.style.color          = textColor;
+
+    // Même fond/couleur sur le panel original (cohérence visuelle)
+    originalPanel.style.backgroundColor = bgColor;
+    originalPanel.style.color           = textColor;
+
+    displayContent.innerHTML = html;
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+updateDisplay();
+</script>
+</body>
+</html>
