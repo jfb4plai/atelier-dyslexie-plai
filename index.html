@@ -431,7 +431,7 @@
     <img src="PLAI.jpg" alt="Logo PLAI" class="header-logo">
     <div class="header-title">
         <h1>Atelier Dyslexie</h1>
-        <p>Simulateur de perception · Outil de sensibilisation pour enseignants</p>
+        <p id="header-subtitle">Simulateur de perception · Outil de sensibilisation pour enseignants</p>
     </div>
     <a href="https://portail-plai.vercel.app" class="back-link">← Portail</a>
 </header>
@@ -592,7 +592,7 @@
             </div>
 
             <div class="sci-note">
-                <strong>Muneaux, Ducrot &amp; Bastien-Toniazzo (2014)</strong> — ces confusions sont d'origine phonologique, non visuelle : la dyslexie traduit une difficulté à associer graphème et phonème, pas une inversion visuelle des lettres. La simulation reste pédagogiquement valide pour développer l'empathie des enseignants envers les élèves porteurs de ce trouble.
+                <strong>Muneaux, Ducrot &amp; Bastien-Toniazzo (2014)</strong> — ces confusions sont d'origine phonologique, non visuelle : la dyslexie traduit une difficulté à associer graphème et phonème, pas une inversion visuelle des lettres. La simulation reste pédagogiquement valide pour développer l'empathie <span id="sci-note-audience">des enseignants </span>envers les élèves porteurs de ce trouble.
             </div>
         </div>
 
@@ -1088,6 +1088,14 @@ function updateDisplay() {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 updateDisplay();
+
+// ── Mode parent (?public=parent) ────────────────────────────────────────
+if (new URLSearchParams(location.search).get('public') === 'parent') {
+    const subtitle = document.getElementById('header-subtitle');
+    if (subtitle) subtitle.textContent = 'Simulateur de perception · Vivez ce que peut vivre votre enfant';
+    const audience = document.getElementById('sci-note-audience');
+    if (audience) audience.textContent = '';
+}
 </script>
 </body>
 </html>
