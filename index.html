@@ -288,6 +288,10 @@
             border-color: var(--primary);
             color: var(--primary);
         }
+        .cpos-btn:disabled, .toggle input:disabled + .toggle-slider {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         /* ── Display area ───────────────────────────────────── */
         .display-area {
@@ -466,8 +470,11 @@
         </div>
 
         <!-- CONSIGNES (texte exemple) -->
-        <div class="card">
+        <div class="card" id="consignesCard">
             <div class="card-title">📋 Consignes</div>
+            <div id="consignesInactiveHint" style="font-size:12px; color:var(--text-muted, #6b7280); background:#f9fafb; border:1px dashed #d1d5db; border-radius:8px; padding:8px 10px; margin-bottom:10px">
+                ⏸️ Inactif — cliquez sur « Texte exemple » (carte 📝 Texte, ci-dessus) pour activer ces options.
+            </div>
             <div class="toggle-row">
                 <label class="toggle">
                     <input type="checkbox" id="consignesNumbered">
@@ -794,6 +801,12 @@ function loadExample() {
     updateDisplay();
 }
 
+function updateConsignesUI() {
+    document.getElementById('consignesNumbered').disabled = !exampleActive;
+    document.querySelectorAll('.cpos-btn').forEach(b => b.disabled = !exampleActive);
+    document.getElementById('consignesInactiveHint').style.display = exampleActive ? 'none' : 'block';
+}
+
 // ── DOM refs ──────────────────────────────────────────────────────────────
 const textInput      = document.getElementById('textInput');
 const displayPanel   = document.getElementById('displayPanel');
@@ -823,6 +836,7 @@ textInput.addEventListener('input', e => {
     exampleActive   = false;
     originalContent = e.target.value;
     updateDisplay();
+    updateConsignesUI();
 });
 textInput.addEventListener('blur', () => {
     if (textInput.value.trim()) collapseTextCard();
@@ -832,6 +846,7 @@ document.getElementById('exampleBtn').addEventListener('click', () => {
     exampleActive = true;
     loadExample();
     collapseTextCard();
+    updateConsignesUI();
 });
 
 document.getElementById('consignesNumbered').addEventListener('change', e => {
@@ -862,6 +877,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
                     textInput.value = originalContent;
                     updateDisplay();
                     collapseTextCard();
+                    updateConsignesUI();
                 })
                 .catch(() => alert('Impossible de lire ce fichier .docx.'));
         };
@@ -873,6 +889,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
             originalContent = ev.target.result;
             textInput.value = originalContent;
             updateDisplay();
+            updateConsignesUI();
             collapseTextCard();
         };
         reader.readAsText(file, 'UTF-8');
@@ -1205,6 +1222,7 @@ function updateDisplay() {
 
 // ── Init ──────────────────────────────────────────────────────────────────
 updateDisplay();
+updateConsignesUI();
 
 // ── Mode parent (?public=parent) ────────────────────────────────────────
 if (new URLSearchParams(location.search).get('public') === 'parent') {
