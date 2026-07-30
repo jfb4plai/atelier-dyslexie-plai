@@ -467,6 +467,22 @@
         /* ── Mode parent : lisibilité renforcée ─────────────── */
         body.parent-mode .sci-note { font-size: 14px; line-height: 1.6; }
 
+        /* ── Consignes gardées lisibles (exemptées des effets) ── */
+        .consignes-readable {
+            display: block;
+            margin: 14px 0;
+            padding: 10px 14px;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            letter-spacing: normal;
+            word-spacing: normal;
+            line-height: 1.6;
+            color: #1e1b4b;
+            background: #ffffff;
+            border: 1.5px dashed #0a9370;
+            border-radius: 8px;
+        }
+
         /* ── Résumé imprimable ──────────────────────────────── */
         #printSummary { display: none; }
         #printSummary h2 { color: #0a9370; font-size: 20px; margin-bottom: 4px; }
@@ -561,6 +577,20 @@
                 <button class="cpos-btn" data-cpos="dessus">Au-dessus</button>
                 <button class="cpos-btn active" data-cpos="dessous">En dessous</button>
             </div>
+
+            <div class="toggle-row">
+                <label class="toggle">
+                    <input type="checkbox" id="consignesReadable">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Garder les consignes lisibles</strong>
+                    <small>Exempte les consignes de tous les effets de distorsion — seul le texte de l'histoire reste déformé</small>
+                </div>
+            </div>
+
+            <button class="btn btn-outline" id="speakConsignesBtn" style="width:100%; margin-top:8px">🔊 Lire les consignes</button>
+
             <small style="color:var(--text-muted, #6b7280); display:block; margin-top:6px">S'applique au texte exemple (fable du renard et de la cigogne).</small>
         </div>
 
@@ -858,7 +888,9 @@ const CONSIGNES = [
 
 let consignesNumbered = false;
 let consignesPosition = 'dessous';
+let consignesReadable = false;
 let exampleActive     = false;
+let consignesRange    = null; // {start, end} des consignes dans originalContent, uniquement si exampleActive
 
 function buildConsignesBloc() {
     return CONSIGNES
@@ -866,15 +898,16 @@ function buildConsignesBloc() {
         .join('\n');
 }
 
-function buildExempleText() {
-    const consignesBloc = buildConsignesBloc();
-    return consignesPosition === 'dessus'
-        ? `${consignesBloc}\n\n\n${FABLE}`
-        : `${FABLE}\n\n\n${consignesBloc}`;
-}
-
 function loadExample() {
-    const texte = buildExempleText();
+    const consignesBloc = buildConsignesBloc();
+    let texte;
+    if (consignesPosition === 'dessus') {
+        texte = `${consignesBloc}\n\n\n${FABLE}`;
+        consignesRange = { start: 0, end: consignesBloc.length };
+    } else {
+        texte = `${FABLE}\n\n\n${consignesBloc}`;
+        consignesRange = { start: FABLE.length + 3, end: FABLE.length + 3 + consignesBloc.length };
+    }
     textInput.value = texte;
     originalContent = texte;
     updateDisplay();
@@ -883,7 +916,10 @@ function loadExample() {
 function updateConsignesUI() {
     document.getElementById('consignesNumbered').disabled = !exampleActive;
     document.querySelectorAll('.cpos-btn').forEach(b => b.disabled = !exampleActive);
+    document.getElementById('consignesReadable').disabled = !exampleActive;
+    document.getElementById('speakConsignesBtn').disabled = !exampleActive;
     document.getElementById('consignesInactiveHint').style.display = exampleActive ? 'none' : 'block';
+    if (!exampleActive) consignesRange = null;
 }
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
@@ -940,6 +976,24 @@ document.querySelectorAll('.cpos-btn').forEach(btn => {
         consignesPosition = btn.dataset.cpos;
         if (exampleActive) loadExample();
     });
+});
+
+document.getElementById('consignesReadable').addEventListener('change', e => {
+    consignesReadable = e.target.checked;
+    if (exampleActive) updateDisplay();
+});
+
+document.getElementById('speakConsignesBtn').addEventListener('click', () => {
+    if (!exampleActive) return;
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(buildConsignesBloc());
+    utt.lang = 'fr-FR';
+    const name = document.getElementById('voiceSelect').value;
+    if (name) {
+        const v = window.speechSynthesis.getVoices().find(x => x.name === name);
+        if (v) utt.voice = v;
+    }
+    window.speechSynthesis.speak(utt);
 });
 
 document.getElementById('fileInput').addEventListener('change', e => {
@@ -1189,21 +1243,29 @@ function shuffleBlocks(text) {
     return out;
 }
 
+function applyLetterEffects(text) {
+    let out = text;
+    if (document.getElementById('symmetry').checked)      out = swapSymmetry(out);
+    if (document.getElementById('shuffleLetters').checked) out = shuffleBlocks(out);
+    return out;
+}
+
 /**
- * Construit le HTML du texte avec bicolor + jumpShift en une seule passe
- * sur les tokens (mots et espaces), pour éviter les conflits entre effets.
+ * Construit le HTML d'un segment de texte, mot par mot, avec bicolor +
+ * jumpShift optionnels. wordIdxStart permet d'enchaîner plusieurs segments
+ * en conservant des data-wi continus (alignés sur la position des mots dans
+ * originalContent, utilisée par le surlignage TTS).
  */
-function buildHTML(plainText) {
-    const bicolor   = document.getElementById('bicolorToggle').checked;
-    const jumpShift = document.getElementById('verticalShift').checked;
+function renderTokens(plainText, wordIdxStart, effectsOn) {
+    const bicolor   = effectsOn && document.getElementById('bicolorToggle').checked;
+    const jumpShift = effectsOn && document.getElementById('verticalShift').checked;
     const c1        = document.getElementById('color1').value;
     const c2        = document.getElementById('color2').value;
 
-    // Tokeniser : alterner mots et séparateurs
     const tokens = plainText.split(/(\s+)/);
-    let wordIdx  = 0;
+    let wordIdx  = wordIdxStart;
 
-    return tokens.map(token => {
+    const html = tokens.map(token => {
         // Séparateur (espaces, retours à la ligne)
         if (/^\s+$/.test(token)) {
             return token.replace(/\n/g, '<br>');
@@ -1229,6 +1291,8 @@ function buildHTML(plainText) {
         const style = color ? ` style="color:${color}"` : '';
         return `<span data-wi="${wi}"${style}>${chars}</span>`;
     }).join('');
+
+    return { html, nextIdx: wordIdx };
 }
 
 function insertImage(html) {
@@ -1269,13 +1333,35 @@ function updateDisplay() {
     const wordSpacing   = document.getElementById('wordSpacing').value;
     const font          = document.getElementById('fontSelect').value;
 
-    // Appliquer les effets texte (niveau plain text)
-    let processed = originalContent;
-    if (document.getElementById('symmetry').checked)     processed = swapSymmetry(processed);
-    if (document.getElementById('shuffleLetters').checked) processed = shuffleBlocks(processed);
+    // Construire le HTML : soit d'un seul bloc, soit en isolant les
+    // consignes (lisibles, sans aucun effet) du reste du texte (déformé).
+    const keepConsignesReadable = exampleActive && consignesReadable && consignesRange;
+    let html;
 
-    // Construire le HTML (bicolor + jumpShift)
-    let html = buildHTML(processed);
+    if (keepConsignesReadable) {
+        const before    = originalContent.slice(0, consignesRange.start);
+        const consignes = originalContent.slice(consignesRange.start, consignesRange.end);
+        const after     = originalContent.slice(consignesRange.end);
+
+        let idx = 0;
+        let out = '';
+        if (before) {
+            const r = renderTokens(applyLetterEffects(before), idx, true);
+            out += r.html; idx = r.nextIdx;
+        }
+        {
+            const r = renderTokens(consignes, idx, false);
+            out += `<span class="consignes-readable">${r.html}</span>`;
+            idx = r.nextIdx;
+        }
+        if (after) {
+            const r = renderTokens(applyLetterEffects(after), idx, true);
+            out += r.html; idx = r.nextIdx;
+        }
+        html = out;
+    } else {
+        html = renderTokens(applyLetterEffects(originalContent), 0, true).html;
+    }
 
     // Image distracteur
     if (document.getElementById('imageToggle').checked) {
