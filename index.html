@@ -358,6 +358,7 @@
             transition: background 0.3s, color 0.3s;
         }
         .panel-label {
+            font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
             font-size: 10px;
             font-weight: 700;
             text-transform: uppercase;
@@ -1114,6 +1115,14 @@ if (new URLSearchParams(location.search).get('public') === 'parent') {
     if (jauneSwatch) {
         jauneSwatch.classList.add('active');
         bgColor = '#fff9e6';
+    }
+
+    // Texte en rouge pour simuler aussi une difficulté de contraste
+    document.querySelectorAll('#textSwatches .swatch').forEach(s => s.classList.remove('active'));
+    const rougeSwatch = document.querySelector('#textSwatches .swatch[data-color="#d97b74"]');
+    if (rougeSwatch) {
+        rougeSwatch.classList.add('active');
+        textColor = '#d97b74';
     }
 
     updateDisplay();
