@@ -436,6 +436,10 @@
     <a href="https://portail-plai.vercel.app" class="back-link">← Portail</a>
 </header>
 
+<div id="parent-explanation" style="display:none; background:#fff9e6; border-bottom:1px solid #f2e29b; padding:12px 24px; font-size:15px; line-height:1.5;">
+    👁️ Ce texte est volontairement difficile à lire : c'est une simulation de ce que peut ressentir un enfant dyslexique face à un texte scolaire. Essayez de le lire jusqu'au bout, puis explorez les réglages à droite (police, couleurs, lecture audio…) pour voir ce qui change.
+</div>
+
 <!-- ═══════════════════════════════════════ MAIN ═══ -->
 <main>
 
@@ -1095,6 +1099,25 @@ if (new URLSearchParams(location.search).get('public') === 'parent') {
     if (subtitle) subtitle.textContent = 'Simulateur de perception · Vivez ce que peut vivre votre enfant';
     const audience = document.getElementById('sci-note-audience');
     if (audience) audience.textContent = '';
+
+    const explanation = document.getElementById('parent-explanation');
+    if (explanation) explanation.style.display = 'block';
+
+    // Confronter directement le parent à un texte déformé, sans réglage manuel préalable
+    document.getElementById('exampleBtn').click();
+    document.getElementById('fontSelect').value = "'French Script MT', cursive";
+    document.getElementById('symmetry').checked = true;
+    document.getElementById('shuffleLetters').checked = true;
+
+    document.querySelectorAll('#bgSwatches .swatch').forEach(s => s.classList.remove('active'));
+    const jauneSwatch = document.querySelector('#bgSwatches .swatch[data-color="#fff9e6"]');
+    if (jauneSwatch) {
+        jauneSwatch.classList.add('active');
+        bgColor = '#fff9e6';
+    }
+
+    updateDisplay();
+    scheduleAnim();
 }
 </script>
 </body>
