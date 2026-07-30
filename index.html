@@ -269,7 +269,7 @@
 
         /* ── Position buttons ───────────────────────────────── */
         .pos-btns { display: flex; gap: 5px; margin-top: 8px; }
-        .pos-btn {
+        .pos-btn, .cpos-btn {
             flex: 1;
             padding: 5px 2px;
             font-size: 11px;
@@ -283,7 +283,7 @@
             transition: all 0.2s;
             font-family: inherit;
         }
-        .pos-btn.active {
+        .pos-btn.active, .cpos-btn.active {
             background: var(--primary-light);
             border-color: var(--primary);
             color: var(--primary);
@@ -461,6 +461,28 @@
             <div id="textCardCollapsedBar" style="display:none">
                 <button class="btn btn-outline" id="editTextBtn" style="width:100%">✏️ Modifier le texte</button>
             </div>
+        </div>
+
+        <!-- CONSIGNES (texte exemple) -->
+        <div class="card">
+            <div class="card-title">📋 Consignes</div>
+            <div class="toggle-row">
+                <label class="toggle">
+                    <input type="checkbox" id="consignesNumbered">
+                    <span class="toggle-slider"></span>
+                </label>
+                <div class="toggle-label">
+                    <strong>Numéroter les consignes</strong>
+                    <small>Ajoute 1. 2. 3. devant chaque consigne</small>
+                </div>
+            </div>
+
+            <label style="margin-top:10px">Position par rapport au texte</label>
+            <div class="pos-btns">
+                <button class="cpos-btn" data-cpos="dessus">Au-dessus</button>
+                <button class="cpos-btn active" data-cpos="dessous">En dessous</button>
+            </div>
+            <small style="color:var(--text-muted, #6b7280); display:block; margin-top:6px">S'applique au texte exemple (fable du renard et de la cigogne).</small>
         </div>
 
         <!-- POLICE & AFFICHAGE -->
@@ -661,6 +683,22 @@
             </div>
         </div>
 
+        <!-- RÉPÉTITION ET MÉMORISATION -->
+        <div class="card">
+            <div class="card-title">🔁 Répétition et mémorisation</div>
+            <div class="sci-note">
+                <strong>Share (1999) ; Bois Parriaud et al. (2018)</strong> — chez l'enfant tout-venant, quelques expositions répétées à un mot nouveau (de l'ordre de 4 à 6 selon les études) suffisent à en encoder la forme orthographique. <strong>Le Ster (2015)</strong> — le déficit phonologique propre à la dyslexie ralentit et perturbe ce mécanisme d'auto-apprentissage : l'élève dyslexique a donc besoin d'être exposé à un mot bien plus souvent qu'un élève tout-venant avant de le retenir durablement. En pratique : revoir et réutiliser les mêmes mots dans des contextes variés plutôt que de compter sur une seule exposition.
+            </div>
+        </div>
+
+        <!-- CHARGE COGNITIVE DU DÉCODAGE -->
+        <div class="card">
+            <div class="card-title">🧠 Charge cognitive et décodage</div>
+            <div class="sci-note">
+                <strong>Ziegler (2018)</strong> — l'automatisation du décodage libère des ressources cognitives qui peuvent alors être dédiées à la compréhension ; tant que le décodage reste coûteux, il capte l'essentiel de l'attention au détriment du sens. <strong>Vandenbroucke (2016)</strong> — chez l'élève dyslexique, cette charge liée au décodage pèse directement sur la compréhension de texte. En pratique : alléger le texte de tout élément non essentiel (longueur, détails secondaires, mise en page chargée) pour réserver les ressources cognitives disponibles à la compréhension plutôt qu'au déchiffrage.
+            </div>
+        </div>
+
     </aside><!-- /controls-panel -->
 
 
@@ -722,7 +760,37 @@ let bgColor         = '#ffffff';
 let textColor       = '#1e1b4b';
 let animInterval    = null;
 
-const EXEMPLE = `Le renard et la cigogne se retrouvèrent un matin de novembre au bord de la forêt. Le renard roux, rusé comme à son habitude, proposa à son amie de partager un repas. Il servit une soupe légère dans une assiette bien plate. La cigogne, avec son long bec effilé, ne put avaler la moindre goutte. Elle sourit pourtant, car elle avait déjà une idée en tête pour rendre la pareille à son compère.`;
+const FABLE = `Le renard et la cigogne se retrouvèrent un matin de novembre au bord de la forais. Le renard roux, rusé comme à son habitude, proposa à son amie de partager un repas. Il servit une soupe léggère dans une assiette bien plate. La cigogne, avec son long bec effilé, ne put avaler la moindre goutte. Elle sourit pourtant, car elle avait déjà une idée en tête pour rendre la pareille à son compère.`;
+
+const CONSIGNES = [
+    `Trouve les 2 fautes d'orthographe.`,
+    `Comment est le bec de la cigogne ?`,
+    `Quand et où a eu lieu la rencontre dont parle le texte ?`
+];
+
+let consignesNumbered = false;
+let consignesPosition = 'dessous';
+let exampleActive     = false;
+
+function buildConsignesBloc() {
+    return CONSIGNES
+        .map((c, i) => consignesNumbered ? `${i + 1}. ${c}` : c)
+        .join('\n');
+}
+
+function buildExempleText() {
+    const consignesBloc = buildConsignesBloc();
+    return consignesPosition === 'dessus'
+        ? `${consignesBloc}\n\n\n${FABLE}`
+        : `${FABLE}\n\n\n${consignesBloc}`;
+}
+
+function loadExample() {
+    const texte = buildExempleText();
+    textInput.value = texte;
+    originalContent = texte;
+    updateDisplay();
+}
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
 const textInput      = document.getElementById('textInput');
@@ -750,6 +818,7 @@ document.getElementById('editTextBtn').addEventListener('click', expandTextCard)
 
 // ── Texte input ───────────────────────────────────────────────────────────
 textInput.addEventListener('input', e => {
+    exampleActive   = false;
     originalContent = e.target.value;
     updateDisplay();
 });
@@ -758,10 +827,23 @@ textInput.addEventListener('blur', () => {
 });
 
 document.getElementById('exampleBtn').addEventListener('click', () => {
-    textInput.value  = EXEMPLE;
-    originalContent  = EXEMPLE;
-    updateDisplay();
+    exampleActive = true;
+    loadExample();
     collapseTextCard();
+});
+
+document.getElementById('consignesNumbered').addEventListener('change', e => {
+    consignesNumbered = e.target.checked;
+    if (exampleActive) loadExample();
+});
+
+document.querySelectorAll('.cpos-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.cpos-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        consignesPosition = btn.dataset.cpos;
+        if (exampleActive) loadExample();
+    });
 });
 
 document.getElementById('fileInput').addEventListener('change', e => {
@@ -773,6 +855,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
         reader.onload = ev => {
             mammoth.extractRawText({ arrayBuffer: ev.target.result })
                 .then(result => {
+                    exampleActive  = false;
                     originalContent = result.value.trim();
                     textInput.value = originalContent;
                     updateDisplay();
@@ -784,6 +867,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
     } else {
         const reader = new FileReader();
         reader.onload = ev => {
+            exampleActive  = false;
             originalContent = ev.target.result;
             textInput.value = originalContent;
             updateDisplay();
