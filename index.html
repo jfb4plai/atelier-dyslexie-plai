@@ -438,7 +438,7 @@
 </header>
 
 <div id="parent-explanation" style="display:none; background:#fff9e6; border-bottom:1px solid #f2e29b; padding:12px 24px; font-size:15px; line-height:1.5;">
-    👁️ Ce texte est volontairement difficile à lire : c'est une simulation de ce que peut ressentir un enfant dyslexique face à un texte scolaire. Essayez de le lire jusqu'au bout, puis explorez les réglages à droite (police, couleurs, lecture audio…) pour voir ce qui change.
+    👁️ Ce texte est volontairement difficile à lire : c'est une simulation de ce que peut ressentir un enfant dyslexique face à un texte scolaire. Essayez de le lire jusqu'au bout, puis explorez les réglages à gauche (police, couleurs, lecture audio…) pour voir ce qui change.
 </div>
 
 <!-- ═══════════════════════════════════════ MAIN ═══ -->
@@ -448,7 +448,7 @@
     <aside class="controls-panel">
 
         <!-- TEXTE -->
-        <div class="card">
+        <div class="card" id="textCard">
             <div class="card-title">📝 Texte</div>
             <textarea class="text-input" id="textInput" placeholder="Collez votre texte ici…"></textarea>
             <div class="btn-row">
@@ -457,6 +457,9 @@
                     <input type="file" id="fileInput" accept=".txt,.docx" style="display:none">
                 </label>
                 <button class="btn btn-ghost" id="exampleBtn">Texte exemple</button>
+            </div>
+            <div id="textCardCollapsedBar" style="display:none">
+                <button class="btn btn-outline" id="editTextBtn" style="width:100%">✏️ Modifier le texte</button>
             </div>
         </div>
 
@@ -728,16 +731,37 @@ const displayContent = document.getElementById('displayContent');
 const originalPanel  = document.getElementById('originalPanel');
 const originalDiv    = document.getElementById('originalContent');
 
+// ── Repli de la zone de saisie une fois le texte chargé ──────────────────
+// Le texte source reste lisible en clair dans la zone de saisie tant qu'elle
+// est ouverte — une fois un texte chargé, on la replie pour que le panneau
+// déformé (à droite) soit la seule version du texte visible, sans raccourci
+// pour contourner l'effet recherché.
+function collapseTextCard() {
+    document.querySelector('#textCard .text-input').style.display = 'none';
+    document.querySelector('#textCard .btn-row').style.display = 'none';
+    document.getElementById('textCardCollapsedBar').style.display = 'block';
+}
+function expandTextCard() {
+    document.querySelector('#textCard .text-input').style.display = '';
+    document.querySelector('#textCard .btn-row').style.display = '';
+    document.getElementById('textCardCollapsedBar').style.display = 'none';
+}
+document.getElementById('editTextBtn').addEventListener('click', expandTextCard);
+
 // ── Texte input ───────────────────────────────────────────────────────────
 textInput.addEventListener('input', e => {
     originalContent = e.target.value;
     updateDisplay();
+});
+textInput.addEventListener('blur', () => {
+    if (textInput.value.trim()) collapseTextCard();
 });
 
 document.getElementById('exampleBtn').addEventListener('click', () => {
     textInput.value  = EXEMPLE;
     originalContent  = EXEMPLE;
     updateDisplay();
+    collapseTextCard();
 });
 
 document.getElementById('fileInput').addEventListener('change', e => {
@@ -752,6 +776,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
                     originalContent = result.value.trim();
                     textInput.value = originalContent;
                     updateDisplay();
+                    collapseTextCard();
                 })
                 .catch(() => alert('Impossible de lire ce fichier .docx.'));
         };
@@ -762,6 +787,7 @@ document.getElementById('fileInput').addEventListener('change', e => {
             originalContent = ev.target.result;
             textInput.value = originalContent;
             updateDisplay();
+            collapseTextCard();
         };
         reader.readAsText(file, 'UTF-8');
     }
