@@ -427,6 +427,57 @@
             .controls-panel { width: 100%; overflow-y: visible; }
             .text-panels { min-height: 400px; }
         }
+
+        /* ── Cartes "à lire" (information scientifique pure) ─── */
+        .card-info {
+            border-color: #a7d9c9;
+            background: #f2fbf8;
+        }
+        .card-info .card-title { color: #0a9370; }
+        .card-info .card-title::after {
+            content: 'À LIRE';
+            margin-left: auto;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            background: #0a9370;
+            color: white;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .card-info .sci-note {
+            color: #0f5c47;
+            background: #e6f6f1;
+            border-left-color: #0a9370;
+        }
+
+        /* ── Réglages avancés (repliables) ──────────────────── */
+        details.advanced-only summary {
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-label);
+            margin-top: 10px;
+            list-style: none;
+        }
+        details.advanced-only summary::-webkit-details-marker { display: none; }
+        details.advanced-only summary::before { content: '▸ '; color: var(--primary); }
+        details.advanced-only[open] summary::before { content: '▾ '; }
+
+        /* ── Mode parent : lisibilité renforcée ─────────────── */
+        body.parent-mode .sci-note { font-size: 14px; line-height: 1.6; }
+
+        /* ── Résumé imprimable ──────────────────────────────── */
+        #printSummary { display: none; }
+        #printSummary h2 { color: #0a9370; font-size: 20px; margin-bottom: 4px; }
+        #printSummary p.subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 18px; }
+        #printSummary ul { margin: 0 0 18px 20px; }
+        #printSummary li { margin-bottom: 10px; line-height: 1.5; font-size: 14px; }
+        #printSummary .sources { font-size: 11px; color: var(--text-muted); margin-top: 24px; line-height: 1.6; }
+        @media print {
+            body > *:not(#printSummary) { display: none !important; }
+            #printSummary { display: block !important; padding: 20px; }
+        }
     </style>
 </head>
 <body>
@@ -438,8 +489,27 @@
         <h1>Atelier Dyslexie</h1>
         <p id="header-subtitle">Simulateur de perception · Outil de sensibilisation pour enseignants</p>
     </div>
+    <button class="btn btn-outline" id="printSummaryBtn" style="white-space:nowrap">🖨️ Résumé à imprimer</button>
     <a href="https://portail-plai.vercel.app" class="back-link">← Portail</a>
 </header>
+
+<!-- ═══════════════════ RÉSUMÉ IMPRIMABLE (parent) ═══ -->
+<div id="printSummary">
+    <h2>Atelier Dyslexie — Ce qui aide votre enfant</h2>
+    <p class="subtitle">Résumé à conserver — Pôle Liégeois d'Accompagnement vers une École Inclusive (PLAI)</p>
+    <ul>
+        <li><strong>La dyslexie n'est pas un trouble de la vue.</strong> L'enfant voit les lettres normalement ; il peine à associer chaque lettre au son qu'elle représente (trouble phonologique).</li>
+        <li><strong>Adapter la présentation du texte aide réellement :</strong> police sans empattement (type Arial), taille suffisante, espacement des lettres et des mots augmenté, éviter le texte justifié.</li>
+        <li><strong>Colorer un mot sur deux</strong> facilite le repérage des limites entre les mots et améliore la précision de lecture.</li>
+        <li><strong>La lecture audio (synthèse vocale)</strong> n'est pas une facilité : c'est un aménagement qui permet d'accéder au sens du texte sans être bloqué par le déchiffrage.</li>
+        <li><strong>Répéter et réutiliser les mêmes mots</strong> dans des contextes variés : un enfant dyslexique a besoin d'être exposé à un mot bien plus souvent qu'un enfant tout-venant avant de le retenir durablement.</li>
+        <li><strong>Alléger les textes</strong> de tout élément non essentiel (longueur, détails secondaires, mise en page chargée) : le décodage mobilise déjà beaucoup de ressources, moins il en reste pour comprendre le sens.</li>
+        <li><strong>Éviter les éléments visuels superflus</strong> à côté d'un texte (images décoratives, mise en page surchargée) : ils ajoutent une charge inutile à un cerveau déjà très sollicité par la lecture.</li>
+    </ul>
+    <p class="sources">
+        Sources vérifiées dans le corpus RISS (recherche scientifique francophone) : Brun (2013) ; Muneaux, Ducrot &amp; Bastien-Toniazzo (2014) ; Chenouna (2021) ; Sweller (1988) ; Chaufournais &amp; Koquert (2014) ; Share (1999) ; Le Ster (2015) ; Ziegler (2018) ; Vandenbroucke (2016).
+    </p>
+</div>
 
 <div id="parent-explanation" style="display:none; background:#fff9e6; border-bottom:1px solid #f2e29b; padding:12px 24px; font-size:15px; line-height:1.5;">
     👁️ Ce texte est volontairement difficile à lire : essayez de le lire jusqu'au bout.
@@ -519,17 +589,21 @@
                 <span class="range-value" id="lineHeightVal">1.8</span>
             </div>
 
-            <label style="margin-top:10px">Espacement lettres</label>
-            <div class="range-row">
-                <input type="range" id="letterSpacing" min="0" max="10" value="0" step="0.5">
-                <span class="range-value" id="letterSpacingVal">0px</span>
-            </div>
+            <details class="advanced-only" open>
+                <summary>Réglages avancés (espacement)</summary>
 
-            <label style="margin-top:10px">Espacement mots</label>
-            <div class="range-row">
-                <input type="range" id="wordSpacing" min="0" max="24" value="0">
-                <span class="range-value" id="wordSpacingVal">0px</span>
-            </div>
+                <label style="margin-top:10px">Espacement lettres</label>
+                <div class="range-row">
+                    <input type="range" id="letterSpacing" min="0" max="10" value="0" step="0.5">
+                    <span class="range-value" id="letterSpacingVal">0px</span>
+                </div>
+
+                <label style="margin-top:10px">Espacement mots</label>
+                <div class="range-row">
+                    <input type="range" id="wordSpacing" min="0" max="24" value="0">
+                    <span class="range-value" id="wordSpacingVal">0px</span>
+                </div>
+            </details>
 
             <label style="margin-top:10px">Fond</label>
             <div class="swatches" id="bgSwatches">
@@ -578,16 +652,19 @@
                     <small>Segmentation lexicale visuelle</small>
                 </div>
             </div>
-            <div class="color-pair">
-                <div class="color-item">
-                    <label>Couleur 1</label>
-                    <input type="color" id="color1" value="#1e1b4b">
+            <details class="advanced-only" open>
+                <summary>Personnaliser les couleurs</summary>
+                <div class="color-pair" style="margin-top:8px">
+                    <div class="color-item">
+                        <label>Couleur 1</label>
+                        <input type="color" id="color1" value="#1e1b4b">
+                    </div>
+                    <div class="color-item">
+                        <label>Couleur 2</label>
+                        <input type="color" id="color2" value="#b45309">
+                    </div>
                 </div>
-                <div class="color-item">
-                    <label>Couleur 2</label>
-                    <input type="color" id="color2" value="#b45309">
-                </div>
-            </div>
+            </details>
             <div class="sci-note">
                 <strong>Chenouna (2021, orthophonie)</strong> — sur 65 enfants dyslexiques, la colorisation de texte améliore la précision de lecture. Les enfants préfèrent les textes colorisés, et cette préférence est associée au texte lu le plus vite et le plus précisément. Efficace même si le découpage n'est pas parfaitement syllabique.
             </div>
@@ -660,13 +737,15 @@
                 <small>Image chargée</small>
             </div>
 
-            <label style="margin-top:10px">Position</label>
-            <div class="pos-btns">
-                <button class="pos-btn active" data-pos="debut">Début</button>
-                <button class="pos-btn" data-pos="milieu">Milieu</button>
-                <button class="pos-btn" data-pos="fin">Fin</button>
-                <button class="pos-btn" data-pos="aleatoire">Aléatoire</button>
-            </div>
+            <details class="advanced-only" open>
+                <summary>Position de l'image</summary>
+                <div class="pos-btns" style="margin-top:8px">
+                    <button class="pos-btn active" data-pos="debut">Début</button>
+                    <button class="pos-btn" data-pos="milieu">Milieu</button>
+                    <button class="pos-btn" data-pos="fin">Fin</button>
+                    <button class="pos-btn" data-pos="aleatoire">Aléatoire</button>
+                </div>
+            </details>
 
             <div class="sci-note">
                 <strong>Sweller (1988) — Théorie de la charge cognitive</strong> — un élément visuel non pertinent augmente la charge extrinsèque. Pour un élève dyslexique dont les ressources cognitives sont déjà mobilisées par le décodage, un distracteur peut provoquer une rupture totale de la compréhension.
@@ -693,7 +772,7 @@
         </div>
 
         <!-- RÉPÉTITION ET MÉMORISATION -->
-        <div class="card">
+        <div class="card card-info">
             <div class="card-title">🔁 Répétition et mémorisation</div>
             <div class="sci-note">
                 <strong>Share (1999) ; Bois Parriaud et al. (2018)</strong> — chez l'enfant tout-venant, quelques expositions répétées à un mot nouveau (de l'ordre de 4 à 6 selon les études) suffisent à en encoder la forme orthographique. <strong>Le Ster (2015)</strong> — le déficit phonologique propre à la dyslexie ralentit et perturbe ce mécanisme d'auto-apprentissage : l'élève dyslexique a donc besoin d'être exposé à un mot bien plus souvent qu'un élève tout-venant avant de le retenir durablement. En pratique : revoir et réutiliser les mêmes mots dans des contextes variés plutôt que de compter sur une seule exposition.
@@ -701,7 +780,7 @@
         </div>
 
         <!-- CHARGE COGNITIVE DU DÉCODAGE -->
-        <div class="card">
+        <div class="card card-info">
             <div class="card-title">🧠 Charge cognitive et décodage</div>
             <div class="sci-note">
                 <strong>Ziegler (2018)</strong> — l'automatisation du décodage libère des ressources cognitives qui peuvent alors être dédiées à la compréhension ; tant que le décodage reste coûteux, il capte l'essentiel de l'attention au détriment du sens. <strong>Vandenbroucke (2016)</strong> — chez l'élève dyslexique, cette charge liée au décodage pèse directement sur la compréhension de texte. En pratique : alléger le texte de tout élément non essentiel (longueur, détails secondaires, mise en page chargée) pour réserver les ressources cognitives disponibles à la compréhension plutôt qu'au déchiffrage.
@@ -1224,8 +1303,13 @@ function updateDisplay() {
 updateDisplay();
 updateConsignesUI();
 
+// ── Résumé imprimable ─────────────────────────────────────────────────────
+document.getElementById('printSummaryBtn').addEventListener('click', () => window.print());
+
 // ── Mode parent (?public=parent) ────────────────────────────────────────
 if (new URLSearchParams(location.search).get('public') === 'parent') {
+    document.body.classList.add('parent-mode');
+
     const subtitle = document.getElementById('header-subtitle');
     if (subtitle) subtitle.textContent = 'Simulateur de perception · Vivez ce que peut vivre votre enfant';
     const audience = document.getElementById('sci-note-audience');
@@ -1233,6 +1317,9 @@ if (new URLSearchParams(location.search).get('public') === 'parent') {
 
     const explanation = document.getElementById('parent-explanation');
     if (explanation) explanation.style.display = 'block';
+
+    // Replier les réglages techniques secondaires : l'essentiel d'abord
+    document.querySelectorAll('details.advanced-only').forEach(d => d.open = false);
 
     // Confronter directement le parent à un texte déformé, sans réglage manuel préalable
     document.getElementById('exampleBtn').click();
