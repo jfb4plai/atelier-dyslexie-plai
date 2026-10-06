@@ -372,7 +372,9 @@
             padding-bottom: 8px;
             border-bottom: 1px solid rgba(0,0,0,0.07);
         }
-        #originalPanel { display: none; }
+        #originalPanel { display: none; background: #ffffff; color: #1a1814; }
+        /* Texte original : toujours en clair (Arial, sans effet), indépendant des réglages */
+        #originalContent { font-family: Arial, sans-serif; font-size: 18px; line-height: 1.7; white-space: pre-wrap; text-align: left; }
 
         /* ── Dyslexia effects ───────────────────────────────── */
         .jump-shift {
@@ -591,7 +593,7 @@
 
             <button class="btn btn-outline" id="speakConsignesBtn" style="width:100%; margin-top:8px">🔊 Lire les consignes</button>
 
-            <small style="color:var(--text-muted, #6b7280); display:block; margin-top:6px">S'applique au texte exemple (fable du renard et de la cigogne).</small>
+            <small style="color:var(--text-muted, #6b7280); display:block; margin-top:6px">S'applique au texte exemple (extrait du référentiel FWB, compétences numériques).</small>
         </div>
 
         <!-- POLICE & AFFICHAGE -->
@@ -600,8 +602,8 @@
 
             <label>Police</label>
             <select id="fontSelect">
-                <option value="'French Script MT', cursive">French Script MT — illisible</option>
-                <option value="Arial, sans-serif" selected>Arial — recommandée</option>
+                <option value="'French Script MT', cursive" selected>French Script MT — illisible</option>
+                <option value="Arial, sans-serif">Arial — recommandée</option>
                 <option value="'Comic Sans MS', cursive">Comic Sans — souvent citée</option>
                 <option value="'Times New Roman', serif">Times New Roman — avec empattement</option>
                 <option value="'Courier New', monospace">Courier New — monospace</option>
@@ -609,14 +611,14 @@
 
             <label style="margin-top:10px">Taille</label>
             <div class="range-row">
-                <input type="range" id="fontSize" min="10" max="36" value="16">
-                <span class="range-value" id="fontSizeVal">16px</span>
+                <input type="range" id="fontSize" min="10" max="36" value="12">
+                <span class="range-value" id="fontSizeVal">12px</span>
             </div>
 
             <label style="margin-top:10px">Interligne</label>
             <div class="range-row">
-                <input type="range" id="lineHeight" min="10" max="45" value="18" step="1">
-                <span class="range-value" id="lineHeightVal">1.8</span>
+                <input type="range" id="lineHeight" min="10" max="45" value="10" step="1">
+                <span class="range-value" id="lineHeightVal">1.0</span>
             </div>
 
             <details class="advanced-only" open>
@@ -637,7 +639,7 @@
 
             <label style="margin-top:10px">Fond</label>
             <div class="swatches" id="bgSwatches">
-                <div class="swatch active" data-color="#ffffff" style="background:#ffffff;border-color:#e5e7eb" title="Blanc"></div>
+                <div class="swatch" data-color="#ffffff" style="background:#ffffff;border-color:#e5e7eb" title="Blanc"></div>
                 <div class="swatch" data-color="#fdf6e3" style="background:#fdf6e3" title="Crème"></div>
                 <div class="swatch" data-color="#F2E8D9" style="background:#F2E8D9" title="Beige"></div>
                 <div class="swatch" data-color="#e8f4f8" style="background:#e8f4f8" title="Bleu ciel"></div>
@@ -647,12 +649,12 @@
                 <div class="swatch" data-color="#f3f3f3" style="background:#f3f3f3" title="Gris clair"></div>
                 <div class="swatch" data-color="#1e1e2e" style="background:#1e1e2e" title="Sombre"></div>
                 <div class="swatch" data-color="#3d2b1f" style="background:#3d2b1f" title="Sépia foncé"></div>
-                <div class="swatch" data-color="#2e5e35" style="background:#2e5e35" title="Vert tableau"></div>
+                <div class="swatch active" data-color="#2e5e35" style="background:#2e5e35" title="Vert tableau"></div>
             </div>
 
             <label style="margin-top:10px">Couleur du texte</label>
             <div class="swatches" id="textSwatches">
-                <div class="swatch active" data-color="#1e1b4b" style="background:#1e1b4b" title="Marine"></div>
+                <div class="swatch" data-color="#1e1b4b" style="background:#1e1b4b" title="Marine"></div>
                 <div class="swatch" data-color="#111827" style="background:#111827" title="Noir"></div>
                 <div class="swatch" data-color="#374151" style="background:#374151" title="Gris foncé"></div>
                 <div class="swatch" data-color="#4a3728" style="background:#4a3728" title="Marron"></div>
@@ -660,7 +662,7 @@
                 <div class="swatch" data-color="#f9fafb" style="background:#f9fafb;border-color:#e5e7eb" title="Blanc cassé"></div>
                 <div class="swatch" data-color="#ffffff" style="background:#ffffff;border-color:#e5e7eb" title="Blanc"></div>
                 <div class="swatch" data-color="#8ecf8e" style="background:#8ecf8e" title="Vert pâle"></div>
-                <div class="swatch" data-color="#d97b74" style="background:#d97b74" title="Rouge craie"></div>
+                <div class="swatch active" data-color="#d97b74" style="background:#d97b74" title="Rouge craie"></div>
                 <div class="swatch" data-color="#d4c44a" style="background:#d4c44a" title="Jaune craie"></div>
             </div>
 
@@ -706,7 +708,7 @@
 
             <div class="toggle-row">
                 <label class="toggle">
-                    <input type="checkbox" id="verticalShift">
+                    <input type="checkbox" id="verticalShift" checked>
                     <span class="toggle-slider"></span>
                 </label>
                 <div class="toggle-label">
@@ -717,7 +719,7 @@
 
             <div class="toggle-row">
                 <label class="toggle">
-                    <input type="checkbox" id="shuffleLetters">
+                    <input type="checkbox" id="shuffleLetters" checked>
                     <span class="toggle-slider"></span>
                 </label>
                 <div class="toggle-label">
@@ -728,7 +730,7 @@
 
             <div class="toggle-row">
                 <label class="toggle">
-                    <input type="checkbox" id="symmetry">
+                    <input type="checkbox" id="symmetry" checked>
                     <span class="toggle-slider"></span>
                 </label>
                 <div class="toggle-label">
@@ -748,7 +750,7 @@
 
             <div class="toggle-row">
                 <label class="toggle">
-                    <input type="checkbox" id="imageToggle">
+                    <input type="checkbox" id="imageToggle" checked>
                     <span class="toggle-slider"></span>
                 </label>
                 <div class="toggle-label">
@@ -762,16 +764,16 @@
                 <input type="file" id="imageInput" accept="image/*" style="display:none">
             </label>
 
-            <div class="img-preview-wrap" id="imgPreviewWrap">
+            <div class="img-preview-wrap" id="imgPreviewWrap" style="display:flex">
                 <img id="previewImg" src="" alt="aperçu">
-                <small>Image chargée</small>
+                <small>Image par défaut (ordinateur / IA). Vous pouvez en choisir une autre.</small>
             </div>
 
             <details class="advanced-only" open>
                 <summary>Position de l'image</summary>
                 <div class="pos-btns" style="margin-top:8px">
-                    <button class="pos-btn active" data-pos="debut">Début</button>
-                    <button class="pos-btn" data-pos="milieu">Milieu</button>
+                    <button class="pos-btn" data-pos="debut">Début</button>
+                    <button class="pos-btn active" data-pos="milieu">Milieu</button>
                     <button class="pos-btn" data-pos="fin">Fin</button>
                     <button class="pos-btn" data-pos="aleatoire">Aléatoire</button>
                 </div>
@@ -828,10 +830,10 @@
             <div class="toolbar-left">
                 <span style="font-size:12px;font-weight:600;color:var(--text-muted)">Alignement</span>
                 <div class="align-btns">
-                    <button class="align-btn active" data-align="left"    title="Gauche">⬅</button>
+                    <button class="align-btn" data-align="left"    title="Gauche">⬅</button>
                     <button class="align-btn"         data-align="center"  title="Centré">↔</button>
                     <button class="align-btn"         data-align="right"   title="Droite">➡</button>
-                    <button class="align-btn"         data-align="justify" title="Justifié — observe les espaces irréguliers !">☰</button>
+                    <button class="align-btn active" data-align="justify" title="Justifié — observe les espaces irréguliers !">☰</button>
                 </div>
             </div>
             <div class="toolbar-right">
@@ -871,19 +873,27 @@
 <script>
 // ── État global ───────────────────────────────────────────────────────────
 let originalContent = '';
-let imageDataUrl    = null;
-let imagePosition   = 'debut';
-let textAlign       = 'left';
-let bgColor         = '#ffffff';
-let textColor       = '#1e1b4b';
+// Image distracteur par défaut (illustration d'ordinateur / réseau neuronal, sans rapport avec le texte)
+const DEFAULT_IMAGE_SVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 90"><rect width="120" height="90" rx="8" fill="#e0f2fe"/><rect x="22" y="12" width="76" height="50" rx="4" fill="#1e293b"/><rect x="26" y="16" width="68" height="42" rx="2" fill="#0ea5e9"/><g stroke="#fde047" stroke-width="1.6" fill="#fde047"><line x1="45" y1="30" x2="60" y2="24"/><line x1="45" y1="30" x2="60" y2="38"/><line x1="45" y1="46" x2="60" y2="38"/><line x1="45" y1="46" x2="60" y2="52"/><line x1="60" y1="24" x2="76" y2="30"/><line x1="60" y1="38" x2="76" y2="30"/><line x1="60" y1="38" x2="76" y2="46"/><line x1="60" y1="52" x2="76" y2="46"/><circle cx="45" cy="30" r="3.2"/><circle cx="45" cy="46" r="3.2"/><circle cx="60" cy="24" r="3.2"/><circle cx="60" cy="38" r="3.2"/><circle cx="60" cy="52" r="3.2"/><circle cx="76" cy="30" r="3.2"/><circle cx="76" cy="46" r="3.2"/></g><path d="M12 66h96l-8 12H20z" fill="#475569"/><rect x="48" y="68" width="24" height="3" rx="1.5" fill="#94a3b8"/><text x="86" y="26" font-family="Arial" font-weight="700" font-size="11" fill="#fff">IA</text></svg>';
+let imageDataUrl    = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(DEFAULT_IMAGE_SVG);
+let imagePosition   = 'milieu';
+let textAlign       = 'justify';
+let bgColor         = '#2e5e35';
+let textColor       = '#d97b74';
 let animInterval    = null;
 
-const FABLE = `Le renard et la cigogne se retrouvèrent un matin de novembre au bord de la forais. Le renard roux, rusé comme à son habitude, proposa à son amie de partager un repas. Il servit une soupe léggère dans une assiette bien plate. La cigogne, avec son long bec effilé, ne put avaler la moindre goutte. Elle sourit pourtant, car elle avait déjà une idée en tête pour rendre la pareille à son compère.`;
+const TEXTE_EXEMPLE = [
+    `Vocabulaire spécifique au hardware - Distinguer des supports de stockage utilisés dont disque dur, cloud`,
+    `Vocaddulaire spécifique au software - Utiliser, adépuattement en contexte, les termes dont moteur de recherche, barre de recherche, navigateur... - Utiliser, adéquatement en contexte, les termes dont fichier, dossier, fenêtre, système d'exploitation, logiciel, application`,
+    `Déterminer des mots-clés/des combinaisons de mots/des opérateurs adéquats pour effectuer recherche – Sélectionner un ou plusieurs mot(s)-clé(s) pertinents pour effectuer une recherche`,
+    `Utiliser un outil de recherche en s’abapatant à l’environnement spécifique d’utilisation : logiciel, système d’exploitation, Web… - Utiliser un outil de recherche, en suivaut les directives de l’enseignant – Utiliser des outils de recherche dont des moteurs de recherche, en considérant leurs spécificités`
+].join('\n\n');
 
 const CONSIGNES = [
-    `Trouve les 2 fautes d'orthographe.`,
-    `Comment est le bec de la cigogne ?`,
-    `Quand et où a eu lieu la rencontre dont parle le texte ?`
+    `Combien de fautes d’orthographe avez-vous trouvées ?`,
+    `À votre avis, quelles sont les classes (P1-P6) concernées ?`,
+    `Quelle est la différence entre hardware et software ?`,
+    `Citer deux moteurs de recherche`
 ];
 
 let consignesNumbered = false;
@@ -902,11 +912,11 @@ function loadExample() {
     const consignesBloc = buildConsignesBloc();
     let texte;
     if (consignesPosition === 'dessus') {
-        texte = `${consignesBloc}\n\n\n${FABLE}`;
+        texte = `${consignesBloc}\n\n\n${TEXTE_EXEMPLE}`;
         consignesRange = { start: 0, end: consignesBloc.length };
     } else {
-        texte = `${FABLE}\n\n\n${consignesBloc}`;
-        consignesRange = { start: FABLE.length + 3, end: FABLE.length + 3 + consignesBloc.length };
+        texte = `${TEXTE_EXEMPLE}\n\n\n${consignesBloc}`;
+        consignesRange = { start: TEXTE_EXEMPLE.length + 3, end: TEXTE_EXEMPLE.length + 3 + consignesBloc.length };
     }
     textInput.value = texte;
     originalContent = texte;
@@ -1305,10 +1315,14 @@ function insertImage(html) {
     }
     if (pos === 'debut') return tag + html;
     if (pos === 'fin')   return html + tag;
-    // milieu : trouver l'espace le plus proche du centre
-    const mid    = Math.floor(html.length / 2);
-    const spaceI = html.indexOf(' ', mid);
-    const at     = spaceI > -1 ? spaceI + 1 : mid;
+    // milieu : couper sur un retour à la ligne ou une fin de mot (jamais à l'intérieur d'une balise)
+    const mid = Math.floor(html.length / 2);
+    let at = html.indexOf('<br>', mid);
+    if (at > -1) at += 4;
+    else {
+        const e = html.indexOf('</span>', mid);
+        at = e > -1 ? e + 7 : html.length;
+    }
     return html.slice(0, at) + tag + html.slice(at);
 }
 
@@ -1378,16 +1392,18 @@ function updateDisplay() {
     displayPanel.style.backgroundColor = bgColor;
     displayPanel.style.color          = textColor;
 
-    // Même fond/couleur sur le panel original (cohérence visuelle)
-    originalPanel.style.backgroundColor = bgColor;
-    originalPanel.style.color           = textColor;
-
     displayContent.innerHTML = html;
 }
 
 // ── Init ──────────────────────────────────────────────────────────────────
-updateDisplay();
+document.getElementById('previewImg').src = imageDataUrl;
+// État de départ dégradé (fond vert tableau, rouge craie, effets actifs) :
+// l'animateur n'a qu'à retirer les obstacles un à un. Recharger la page = revenir à cet état.
+exampleActive = true;
+loadExample();
+collapseTextCard();
 updateConsignesUI();
+scheduleAnim();
 
 // ── Résumé imprimable ─────────────────────────────────────────────────────
 document.getElementById('printSummaryBtn').addEventListener('click', () => window.print());
